@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 class Program
@@ -12,63 +13,107 @@ class Program
         {
             Console.Write("$ ");
             string input = Console.ReadLine();
-            if (string.IsNullOrEmpty(input)) continue;
+            if (string.IsNullOrWhiteSpace(input)) continue;
 
-            if (input == "exit")
+            string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string command = parts[0];
+            string[] args = parts[1..];
+
+            if (command == "exit")
             {
                 break;
             }
-            else if (input.StartsWith("echo "))
+            else if (command == "echo")
             {
-                Console.WriteLine(input[5..]);
+                Console.WriteLine(string.Join(" ", args));
             }
-            else if (input.StartsWith("type "))
+            else if (command == "type")
             {
-                string target = input[5..];
-                
-                if (validCommands.Contains(target))
+                if (args.Length > 0)
                 {
-                    Console.WriteLine($"{target} is a shell builtin");
-                }
-                else
-                {
-                    string execPath = FindInPath(target);
-                    if (execPath != null)
+                    string target = args[0];
+                    if (validCommands.Contains(target))
                     {
-                        Console.WriteLine($"{target} is {execPath}");
+                        Console.WriteLine($"{target} is a shell builtin");
                     }
                     else
                     {
-                        Console.WriteLine($"{target}: not found");
+                        string execPath = FindInPath(target);
+                        if (execPath != null)
+                        {
+                            Console.WriteLine($"{target} is {execPath}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{target}: not found");
+                        }
                     }
                 }
             }
             else
             {
-                Console.WriteLine($"{input}: command not found");
+                string execPath = FindInPath(command);
+                if (execPath != null)
+                {
+                    ExecuteProgram(execPath, args);
+                }
+                else
+                {
+                    Console.WriteLine($"{command}: command not found");
+                }
             }
         }
     }
 
     static string FindInPath(string command)
     {
+        if (command.Contains('/'))
+        {
+            return (File.Exists(command) && IsExecutable(command)) ? command : null;
+        }
+
         string pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "";
         string[] directories = pathEnv.Split(':');
 
         foreach (string dir in directories)
         {
             string fullPath = Path.Combine(dir, command);
-            if (File.Exists(fullPath))
+            if (File.Exists(fullPath) && IsExecutable(fullPath))
             {
-                UnixFileMode mode = File.GetUnixFileMode(fullPath);
-                UnixFileMode execBits = UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
-                
-                if ((mode & execBits) != 0)
-                {
-                    return fullPath;
-                }
+                return fullPath;
             }
         }
         return null;
+    }
+
+    static bool IsExecutable(string filePath)
+    {
+        try
+        {
+            UnixFileMode mode = File.GetUnixFileMode(filePath);
+            UnixFileMode execBits = UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            return (mode & execBits) != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static void ExecuteProgram(string filePath, string[] args)
+    {
+        ProcessStartInfo startInfo = new ProcessStartInfo
+        {
+            FileName = filePath,
+            UseShellExecute = false
+        };
+
+        foreach (string arg in args)
+        {
+            startInfo.ArgumentList.Add(arg);
+        }
+
+        using Process process = Process.Start(startInfo);
+        process?.WaitForExit();
     }
 }
