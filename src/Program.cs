@@ -23,6 +23,11 @@ class Program
             {
                 break;
             }
+            else if(command == "pwd")
+            {
+                
+                Console.WriteLine(Directory.GetCurrentDirectory());
+            }
             else if (command == "echo")
             {
                 Console.WriteLine(string.Join(" ", args));
