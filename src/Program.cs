@@ -7,7 +7,7 @@ class Program
 {
     static void Main()
     {
-        HashSet<string> validCommands = new HashSet<string>(new[] { "echo", "exit", "type", "pwd" });
+        HashSet<string> validCommands = new HashSet<string>(new[] { "echo", "exit", "type", "pwd", "cd"});
 
         while (true)
         {
@@ -22,6 +22,18 @@ class Program
             if (command == "exit")
             {
                 break;
+            }
+            else if(command == "cd")
+            {
+                if(Directory.Exists(input[3..]))
+                {
+                    Directory.SetCurrentDirectory(input[3..]);
+                }
+                else
+                {
+                    Console.WriteLine($"cd: {input[3..]}: No such file or directory");
+                }
+                 
             }
             else if(command == "pwd")
             {
