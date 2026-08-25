@@ -25,6 +25,11 @@ class Program
             }
             else if(command == "cd")
             {
+                if(input[3..] == "~")
+                {
+                    Directory.SetCurrentDirectory(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                }
+                else
                 if(Directory.Exists(input[3..]))
                 {
                     Directory.SetCurrentDirectory(input[3..]);
