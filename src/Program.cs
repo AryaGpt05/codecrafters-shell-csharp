@@ -55,7 +55,8 @@ class Program
                 string execPath = FindInPath(command);
                 if (execPath != null)
                 {
-                    ExecuteProgram(execPath, args);
+                    // Pass 'command' instead of 'execPath' to preserve Arg #0 as the original command name
+                    ExecuteProgram(command, args);
                 }
                 else
                 {
@@ -100,11 +101,11 @@ class Program
         }
     }
 
-    static void ExecuteProgram(string filePath, string[] args)
+    static void ExecuteProgram(string command, string[] args)
     {
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = filePath,
+            FileName = command,
             UseShellExecute = false
         };
 
