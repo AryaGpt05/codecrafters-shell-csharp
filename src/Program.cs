@@ -7,7 +7,7 @@ class Program
 {
     static void Main()
     {
-        HashSet<string> validCommands = new HashSet<string>(new[] { "echo", "exit", "type" });
+        HashSet<string> validCommands = new HashSet<string>(new[] { "echo", "exit", "type", "pwd" });
 
         while (true)
         {
